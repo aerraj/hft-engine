@@ -76,11 +76,12 @@ template <Strategy S> class Engine {
           exchange(c.latency) {
         if (metrics_ && !clock_)
             healthy_ = false;
-        strategy.size = c.strategy_size;
+        if constexpr (requires { strategy.size = c.strategy_size; })
+            strategy.size = c.strategy_size;
         if constexpr (std::same_as<S, Maker>) {
             strategy.half_spread = c.half_spread;
             strategy.skew_ticks = c.skew;
-        } else
+        } else if constexpr (std::same_as<S, Taker>)
             strategy.threshold = c.threshold;
     }
     bool healthy() const noexcept {
@@ -192,13 +193,19 @@ template <Strategy S> class Engine {
             last_quote_ = now_;
             auto signal_start = stamp();
             auto intent = strategy.on_book_update(book, loc, oms.account(loc).position);
+            if (intent.count > intent.orders.size()) {
+                healthy_ = false;
+                return false;
+            }
             auto signal_end = stamp();
             record(Metrics::Signal, signal_start, signal_end);
             // Maintain at most one quote per side. Cancel stale quotes before submitting
             // replacements; until cancel acknowledgment they remain in risk exposure and self-trade
             // checks.
-            if constexpr (std::same_as<S, Maker>) {
+            {
                 oms.each([&](Oms::Record &r) {
+                    if (r.order.ioc)
+                        return;
                     bool desired = false;
                     for (unsigned i = 0; i < intent.count; ++i)
                         if (r.order.side == intent.orders[i].side &&
@@ -211,6 +218,10 @@ template <Strategy S> class Engine {
             }
             for (unsigned i = 0; i < intent.count; ++i) {
                 auto o = intent.orders[i];
+                if (o.locate != loc) {
+                    healthy_ = false;
+                    return false;
+                }
                 bool duplicate = false;
                 oms.each([&](const Oms::Record &r) {
                     if (r.order.locate == loc && r.order.side == o.side)

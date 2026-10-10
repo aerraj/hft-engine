@@ -1,3 +1,4 @@
+#include "hft/core/config.hpp"
 #include "hft/core/engine.hpp"
 #include "hft/feed/recovery.hpp"
 #include "hft/feed/replay.hpp"
@@ -114,6 +115,11 @@ int main(int argc, char **argv) {
     unsigned snapshots = 0;
     for (int i = 4; i < argc; ++i) {
         std::string_view key = argv[i];
+        if (key == "--config") {
+            if (i + 1 >= argc || !hft::load_config(argv[++i], c))
+                return 2;
+            continue;
+        }
         if (key == "--metrics") {
             metrics = true;
             continue;

@@ -32,7 +32,7 @@ with tempfile.TemporaryDirectory() as d:
     for strategy in ('maker','taker'):
         outputs=[]
         for run in (1,2):
-            prefix=d/f'{strategy}{run}';subprocess.run([exe,strategy,str(fixture),str(prefix),'--snapshot-every','1000','--metrics'],check=True);outputs.append(prefix)
+            prefix=d/f'{strategy}{run}';subprocess.run([exe,strategy,str(fixture),str(prefix),'--snapshot-every','1000','--metrics']+(['--config',str(root/'config/default.conf')] if run==1 else []),check=True);outputs.append(prefix)
             summary=json.loads(prefix.with_suffix('.json').read_text());assert summary['messages']==count
             assert summary['orders']>0 and summary['fills']>0,summary
             compare(str(prefix)+'.book.csv',snapshots[count])

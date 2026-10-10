@@ -1,3 +1,4 @@
+#include "hft/core/config.hpp"
 #include "hft/core/engine.hpp"
 #include "hft/core/ring.hpp"
 #include "hft/feed/recovery.hpp"
@@ -705,4 +706,43 @@ TEST(Simulator, FilledOldOrderWinsReplaceRace) {
     EXPECT_EQ(oms.get(id)->state, State::Filled);
     EXPECT_EQ(oms.get(replacement)->state, State::Cancelled);
     EXPECT_EQ(oms.account(1).position, 1);
+}
+
+TEST(Config, ColdLoadRejectsInvalidWithoutPartialMutation) {
+    Config c;
+    auto path = std::filesystem::temp_directory_path() / "hft-test.conf";
+    {
+        std::ofstream out(path);
+        out << "max_position=12\nnetwork_ns=25\n";
+    }
+    ASSERT_TRUE(load_config(path.c_str(), c));
+    EXPECT_EQ(c.limits.max_position, 12);
+    EXPECT_EQ(c.latency.network, 25);
+    {
+        std::ofstream out(path);
+        out << "max_position=15\nunknown=2\n";
+    }
+    EXPECT_FALSE(load_config(path.c_str(), c));
+    EXPECT_EQ(c.limits.max_position, 12);
+    std::filesystem::remove(path);
+}
+
+TEST(Strategy, CustomConceptNeedsNoReferenceStrategyFields) {
+    struct Custom {
+        unsigned updates = 0;
+        Intent on_book_update(const Book &, Locate, std::int64_t) noexcept {
+            ++updates;
+            return {};
+        }
+        void on_trade(Price, Qty) noexcept {}
+        void on_fill(const Fill &) noexcept {}
+        void on_timer(Time) noexcept {}
+    };
+    static_assert(Strategy<Custom>);
+    Config config;
+    config.quote_interval = 0;
+    Engine<Custom> engine(config);
+    test::start(engine);
+    ASSERT_TRUE(engine.process(test::add(1, Side::Buy, 100, 1, 2)));
+    EXPECT_EQ(engine.strategy.updates, 1);
 }

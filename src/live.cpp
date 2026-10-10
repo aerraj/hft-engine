@@ -1,3 +1,4 @@
+#include "hft/core/config.hpp"
 #include "hft/core/control.hpp"
 #include "hft/core/engine.hpp"
 #include "hft/feed/recovery.hpp"
@@ -153,7 +154,10 @@ int main(int argc, char **argv) {
         if (i + 1 >= argc)
             return 1;
         auto value = argv[++i];
-        if (key == "--group")
+        if (key == "--config") {
+            if (!hft::load_config(value, config))
+                return 1;
+        } else if (key == "--group")
             group = value;
         else if (key == "--recovery")
             recovery = value;
