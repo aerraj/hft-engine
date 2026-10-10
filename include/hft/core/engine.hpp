@@ -8,6 +8,7 @@
 namespace hft {
 struct Config {
     int core = -1;
+    bool full_scan = false;
     bool dense_index = true, lock_pages = false, huge_pages = false;
     std::uint32_t order_capacity = 262144, level_capacity = 65536;
     Locate target = 1;
@@ -73,7 +74,7 @@ template <Strategy S> class Engine {
     explicit Engine(Config c = {}, Clock *clock = nullptr, Metrics *metrics = nullptr)
         : config_(c), clock_(clock), metrics_(metrics),
           book(c.order_capacity, c.level_capacity, c.target, c.dense_index), risk(c.limits),
-          exchange(c.latency) {
+          exchange(c.latency, c.full_scan) {
         if (metrics_ && !clock_)
             healthy_ = false;
         if constexpr (requires { strategy.size = c.strategy_size; })

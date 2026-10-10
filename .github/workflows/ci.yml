@@ -43,6 +43,7 @@ jobs:
           CORE=$(python3 -c 'import os; print(min(os.sched_getaffinity(0)))')
           python3 tools/run_benchmarks.py build/hft_bench --out current --core "$CORE" --repetitions 20
           python3 tools/run_benchmarks.py build/hft_bench --out sparse --dense 0 --core "$CORE" --repetitions 20
+          python3 tools/run_benchmarks.py build/hft_bench --out fullscan --scan 1 --core "$CORE" --repetitions 20
           build/hft_microbench --benchmark_repetitions=20 --benchmark_min_time=0.01s --benchmark_out=micro.json --benchmark_out_format=json
       - run: python3 tools/check_regression.py current.json current.json
       - uses: actions/upload-artifact@v4
@@ -51,6 +52,7 @@ jobs:
           path: |
             current.*
             sparse.*
+            fullscan.*
             micro.json
   benchmark-regression:
     # Requires a dedicated Linux x86-64 runner and an approved baseline from that host.

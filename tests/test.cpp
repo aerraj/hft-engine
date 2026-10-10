@@ -746,3 +746,33 @@ TEST(Strategy, CustomConceptNeedsNoReferenceStrategyFields) {
     ASSERT_TRUE(engine.process(test::add(1, Side::Buy, 100, 1, 2)));
     EXPECT_EQ(engine.strategy.updates, 1);
 }
+
+TEST(Simulator, ActiveListMatchesFullScanAcrossReuse) {
+    Book a(32, 32), b(32, 32);
+    Oms oa, ob;
+    Exchange fast({0, 0}, false), slow({0, 0}, true);
+    auto cb = [](const Fill &) {};
+    for (unsigned i = 0; i < 1000; ++i) {
+        auto e = test::event(i + 1, Side::Buy, 100, 10);
+        ASSERT_TRUE(a.apply(e));
+        ASSERT_TRUE(b.apply(e));
+        auto id = oa.submit({0, 1, Side::Buy, 100, 2}, i * 4);
+        auto other = ob.submit({0, 1, Side::Buy, 100, 2}, i * 4);
+        ASSERT_EQ(id, other);
+        fast.submit(oa.get(id)->order, i * 4);
+        slow.submit(ob.get(other)->order, i * 4);
+        ASSERT_TRUE(fast.advance(i * 4, a, oa, cb));
+        ASSERT_TRUE(slow.advance(i * 4, b, ob, cb));
+        auto cancel = test::removal(Kind::Delete, i + 1, 0, i * 4 + 1);
+        fast.on_event(cancel, a);
+        slow.on_event(cancel, b);
+        a.apply(cancel);
+        b.apply(cancel);
+        fast.cancel(oa.get(id)->order, i * 4 + 2);
+        slow.cancel(ob.get(id)->order, i * 4 + 2);
+        ASSERT_TRUE(fast.advance(i * 4 + 3, a, oa, cb));
+        ASSERT_TRUE(slow.advance(i * 4 + 3, b, ob, cb));
+        EXPECT_EQ(oa.active(), ob.active());
+        EXPECT_EQ(oa.get(id)->state, ob.get(id)->state);
+    }
+}

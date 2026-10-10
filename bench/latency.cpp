@@ -51,12 +51,14 @@ void operator delete(void *p, std::size_t, std::align_val_t) noexcept {
 int main(int argc, char **argv) {
     std::uint64_t samples = 100000;
     std::string prefix = "latency";
-    bool pinned = false, dense = true;
+    bool pinned = false, dense = true, full_scan = false;
     for (int i = 1; i < argc; ++i) {
         std::string_view key = argv[i];
         if (i + 1 >= argc)
             return 2;
-        if (key == "--dense")
+        if (key == "--scan")
+            full_scan = std::string_view(argv[++i]) == "1";
+        else if (key == "--dense")
             dense = std::string_view(argv[++i]) != "0";
         else if (key == "--samples")
             samples = std::strtoull(argv[++i], nullptr, 10);
@@ -75,6 +77,7 @@ int main(int argc, char **argv) {
     auto metrics = std::make_unique<hft::Metrics>();
     hft::Config c;
     c.dense_index = dense;
+    c.full_scan = full_scan;
     c.latency = {0, 0};
     c.quote_interval = 0;
     c.limits.max_position = 100000000;
@@ -87,7 +90,13 @@ int main(int argc, char **argv) {
     // Changing touch forces cancel/new orders on alternate iterations, avoiding a no-order
     // benchmark.
     auto add = test::add(3, hft::Side::Buy, 100001, 1000, 4), del = test::remove('D', 3, 0, 5);
-    hft::NullSink sink;
+    struct BenchSink : hft::NullSink {
+        bool wire(hft::Time, const hft::Wire &w) noexcept {
+            asm volatile("" : : "g"(w.bytes.data()), "g"(w.size) : "memory");
+            return true;
+        }
+    };
+    BenchSink sink;
     auto cycle = [&](std::uint64_t i) {
         auto &packet = (i % 2 == 0) ? add : del;
         hft::put_be(packet, 5, 4 + i, 6);
@@ -146,13 +155,14 @@ int main(int argc, char **argv) {
     utsname host{};
     uname(&host);
     std::ofstream out(prefix + ".json");
-    out << "{\"schema\":2,\"dataset\":\"two_sided_forced_quote_v1\",\"platform\":\"" << host.sysname
+    out << "{\"schema\":2,\"dataset\":\"two_sided_forced_quote_v2\",\"platform\":\"" << host.sysname
         << "\",\"arch\":\"" << host.machine << "\",\"compiler\":\"" << __VERSION__
         << "\",\"build_type\":\"" << HFT_BUILD_TYPE
         << "\",\"native\":" << (HFT_NATIVE_ENABLED ? "true" : "false")
         << ",\"pinned\":" << (pinned ? "true" : "false") << ",\"timer\":\""
         << (clock->tsc() ? "invariant_tsc" : "steady_clock")
         << "\",\"ns_per_tick\":" << clock->ns_per_tick()
+        << ",\"full_scan\":" << (full_scan ? "true" : "false")
         << ",\"dense_index\":" << (dense ? "true" : "false")
         << ",\"hot_allocations\":" << hot_allocations
         << ",\"encoded_orders\":" << measured->oms.submitted - before_orders

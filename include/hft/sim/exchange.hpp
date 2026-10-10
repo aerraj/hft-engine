@@ -21,6 +21,7 @@ class Exchange {
         Order order{};
         Qty remaining{};
         std::uint64_t ahead{}, cutoff{};
+        std::size_t active_slot = Oms::capacity;
     };
     static constexpr std::size_t capacity = 8192;
     std::array<Scheduled, capacity> heap_{};
@@ -28,6 +29,19 @@ class Exchange {
     std::uint64_t sequence_ = 0;
     std::array<Resting, Oms::capacity> resting_{};
     Latency latency_;
+    std::array<std::size_t, Oms::capacity> active_{};
+    std::size_t live_ = 0;
+    bool full_scan_;
+    void remove_resting(Resting &r) noexcept {
+        auto slot = r.active_slot;
+        if (slot >= live_)
+            return;
+        auto index = active_[--live_];
+        active_[slot] = index;
+        resting_[index].active_slot = slot;
+        r.active_slot = Oms::capacity;
+        r.remaining = 0;
+    }
     bool good_ = true;
     static bool later(const Scheduled &a, const Scheduled &b) noexcept {
         return a.time > b.time || (a.time == b.time && a.sequence > b.sequence);
@@ -47,7 +61,8 @@ class Exchange {
     }
 
   public:
-    explicit Exchange(Latency latency = {}) : latency_(latency) {}
+    explicit Exchange(Latency latency = {}, bool full_scan = false)
+        : latency_(latency), full_scan_(full_scan) {}
     bool good() const noexcept {
         return good_;
     }
@@ -100,7 +115,8 @@ class Exchange {
                 }
                 if (remaining && !o.ioc) {
                     std::uint64_t ahead = b.depth(o.side, o.price, o.locate);
-                    r = {o, remaining, ahead, b.serial()};
+                    r = {o, remaining, ahead, b.serial(), live_};
+                    active_[live_++] = o.id % Oms::capacity;
                 } else if (remaining)
                     response(Action::Cancelled, o, s.time);
                 break;
@@ -112,6 +128,7 @@ class Exchange {
                     break;
                 }
                 auto executed_qty = old.order.qty - old.remaining;
+                remove_resting(old);
                 old = {};
                 o.qty = o.qty > executed_qty ? o.qty - executed_qty : 0;
                 if (!o.qty) {
@@ -122,6 +139,7 @@ class Exchange {
             }
             case Action::Cancel:
                 if (r.remaining && r.order.id == o.id) {
+                    remove_resting(r);
                     r = {};
                     response(Action::Cancelled, o, s.time);
                 }
@@ -171,9 +189,11 @@ class Exchange {
         auto &level = b.level(n->level);
         auto removed = e.kind == Kind::Delete || e.kind == Kind::Replace ? n->qty : e.qty;
         // Walk our FIFO by ID, not storage slot order (IDs can wrap modulo the slot count).
-        std::array<std::size_t, Oms::capacity> indexes{};
+        std::array<std::size_t, Oms::capacity> indexes;
         std::size_t count = 0;
-        for (std::size_t i = 0; i < resting_.size(); ++i) {
+        auto scanned = full_scan_ ? resting_.size() : live_;
+        for (std::size_t j = 0; j < scanned; ++j) {
+            auto i = full_scan_ ? j : active_[j];
             auto &r = resting_[i];
             if (r.remaining && r.order.locate == e.locate && r.order.side == level.side &&
                 r.order.price == level.price)
@@ -196,14 +216,17 @@ class Exchange {
                     already_filled += q;
                     response(Action::Fill, r.order, e.time,
                              {r.order.id, q, level.price, e.time + latency_.network, true});
+                    if (!r.remaining)
+                        remove_resting(r);
                 }
             }
         }
     }
     template <class F> void each_resting(F &&f) const noexcept {
-        for (auto &r : resting_)
-            if (r.remaining)
-                f(r.order, r.remaining, r.ahead);
+        for (std::size_t j = 0; j < live_; ++j) {
+            auto &r = resting_[active_[j]];
+            f(r.order, r.remaining, r.ahead);
+        }
     }
 };
 } // namespace hft

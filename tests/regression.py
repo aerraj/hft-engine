@@ -1,6 +1,6 @@
 import copy,json,subprocess,sys,tempfile
 from pathlib import Path
-root=Path(sys.argv[1]);baseline=json.loads((root/'docs/bench/linux/current.json').read_text());baseline['cpu_model']='fixture CPU'
+root=Path(sys.argv[1]);baseline=json.loads((root/'docs/bench/linux/current.json').read_text());baseline['cpu_model']='fixture CPU';baseline['full_scan']=False
 with tempfile.TemporaryDirectory() as d:
     d=Path(d);a=d/'baseline.json';a.write_text(json.dumps(baseline))
     def check(current,passes):
