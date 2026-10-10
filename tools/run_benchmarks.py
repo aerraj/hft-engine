@@ -10,7 +10,11 @@ for i in range(a.repetitions):
     subprocess.run(command,check=True);runs.append(json.loads(Path(name+'.json').read_text()))
 source=hashlib.sha256();repo=Path(__file__).resolve().parents[1]
 for file in sorted(list((repo/'include').rglob('*.hpp'))+list((repo/'bench').glob('*.cpp'))):source.update(file.relative_to(repo).as_posix().encode());source.update(file.read_bytes())
-result=runs[0].copy();result['source_sha256']=source.hexdigest();result['host']=platform.platform();result['repetitions']=a.repetitions;result['aggregation']='median of run percentiles; counts per run'
+result=runs[0].copy();result['source_sha256']=source.hexdigest();result['host']=platform.platform();
+try:
+    cpuinfo=Path('/proc/cpuinfo').read_text();result['cpu_model']=next(line.split(':',1)[1].strip() for line in cpuinfo.splitlines() if line.startswith('model name'))
+except (OSError,StopIteration):result['cpu_model']=platform.processor() or 'unavailable'
+result['repetitions']=a.repetitions;result['aggregation']='median of run percentiles; counts per run'
 for key in ('messages_per_second','instrumented_messages_per_second'):
     result[key]=statistics.median(r[key] for r in runs)
 for stage in result['stages']:
