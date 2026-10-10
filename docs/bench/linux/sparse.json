@@ -1,0 +1,95 @@
+{
+  "schema": 2,
+  "dataset": "two_sided_forced_quote_v1",
+  "platform": "Linux",
+  "arch": "x86_64",
+  "compiler": "13.3.0",
+  "build_type": "Release",
+  "native": true,
+  "pinned": true,
+  "timer": "invariant_tsc",
+  "ns_per_tick": 0.35801,
+  "dense_index": false,
+  "hot_allocations": 0,
+  "encoded_orders": 50000,
+  "instrumented_messages_per_second": 1958205.0,
+  "messages_per_second": 3442850.0,
+  "stages": {
+    "parse": {
+      "samples": 100000.0,
+      "p50_ns": 30.0,
+      "p90_ns": 31.0,
+      "p99_ns": 32.0,
+      "p999_ns": 40.0,
+      "max_ns": 4802.5,
+      "out_of_range": 0.0
+    },
+    "book": {
+      "samples": 100000.0,
+      "p50_ns": 205.0,
+      "p90_ns": 216.0,
+      "p99_ns": 221.0,
+      "p999_ns": 321.0,
+      "max_ns": 9234.5,
+      "out_of_range": 0.0
+    },
+    "signal": {
+      "samples": 100000.0,
+      "p50_ns": 37.0,
+      "p90_ns": 39.0,
+      "p99_ns": 40.0,
+      "p999_ns": 45.0,
+      "max_ns": 5486.5,
+      "out_of_range": 0.0
+    },
+    "risk": {
+      "samples": 50000.0,
+      "p50_ns": 35.0,
+      "p90_ns": 37.0,
+      "p99_ns": 38.0,
+      "p999_ns": 45.0,
+      "max_ns": 4847.5,
+      "out_of_range": 0.0
+    },
+    "encode": {
+      "samples": 50000.0,
+      "p50_ns": 40.0,
+      "p90_ns": 41.0,
+      "p99_ns": 42.0,
+      "p999_ns": 50.5,
+      "max_ns": 5276.5,
+      "out_of_range": 0.0
+    },
+    "tick_to_trade": {
+      "samples": 50000.0,
+      "p50_ns": 455.0,
+      "p90_ns": 461.0,
+      "p99_ns": 473.0,
+      "p999_ns": 707.0,
+      "max_ns": 10032.0,
+      "out_of_range": 0.0
+    },
+    "total_event": {
+      "samples": 100000.0,
+      "p50_ns": 607.0,
+      "p90_ns": 635.0,
+      "p99_ns": 650.0,
+      "p999_ns": 925.0,
+      "max_ns": 13668.5,
+      "out_of_range": 0.0
+    }
+  },
+  "book_add_micro": {
+    "samples": 100000,
+    "p50_ns": 68,
+    "p90_ns": 68,
+    "p99_ns": 78,
+    "p999_ns": 81,
+    "max_ns": 8426,
+    "out_of_range": 0
+  },
+  "source_sha256": "2825367b67239cdcfd575665099b96332937c93ae010cc90ebdb44439a4e09cf",
+  "host": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "repetitions": 20,
+  "aggregation": "median of run percentiles; counts per run"
+}
