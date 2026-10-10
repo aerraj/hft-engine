@@ -19,6 +19,10 @@ for key in ('messages_per_second','instrumented_messages_per_second'):
     result[key]=statistics.median(r[key] for r in runs)
 for stage in result['stages']:
     result['stages'][stage]={key:statistics.median(r['stages'][stage][key] for r in runs) for key in runs[0]['stages'][stage]}
+result['stage_run_ranges']={name:{key:{'min':min(r['stages'][name][key] for r in runs),'max':max(r['stages'][name][key] for r in runs)} for key in ('p50_ns','p99_ns','p999_ns')} for name in result['stages']}
+for name in result['stages']:
+    for key in ('max_ns','out_of_range'):result['stages'][name][key]=max(r['stages'][name][key] for r in runs)
+result['aggregation']='median of run percentiles; maximum across runs for max and overflow; counts per run'
 result['hot_allocations']=max(r['hot_allocations'] for r in runs)
 prefix.with_suffix('.json').write_text(json.dumps(result,indent=2)+'\n')
 # Histogram from representative run only; do not combine counts with aggregated percentiles.
