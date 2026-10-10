@@ -1,41 +1,66 @@
 name: CI
 on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
 jobs:
-  test:
+  correctness:
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
-        compiler: [g++, clang++]
+        compiler: [gcc14, clang18]
         sanitizer: ['', 'address,undefined', 'thread']
     steps:
       - uses: actions/checkout@v4
-      - run: cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DHFT_SANITIZER=${{ matrix.sanitizer }} -DCMAKE_BUILD_TYPE=Debug
-      - run: cmake --build build
-      - run: ctest --test-dir build --output-on-failure
-      - run: |
-          python3 tools/generate_fixture.py
-          for s in maker taker; do
-            build/hft_replay $s tests/fixtures/synthetic.itch build/$s.1.orders
-            build/hft_replay $s tests/fixtures/synthetic.itch build/$s.2.orders
-            cmp build/$s.1.orders build/$s.2.orders
-          done
+      - name: Install toolchain
+        run: sudo apt-get update && sudo apt-get install -y g++-14 clang-18 ninja-build
+      - name: Configure
+        env:
+          TOOLCHAIN: ${{ matrix.compiler }}
+          SANITIZER: ${{ matrix.sanitizer }}
+        run: |
+          if [ "$TOOLCHAIN" = gcc14 ]; then export CC=gcc-14 CXX=g++-14; else export CC=clang-18 CXX=clang++-18; fi
+          if [ "$SANITIZER" = thread ]; then sudo sysctl vm.mmap_rnd_bits=28; fi
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DHFT_SANITIZER="$SANITIZER" -DHFT_GOOGLE_BENCHMARK=OFF
+      - run: cmake --build build -j 2
+      - run: ctest --test-dir build --output-on-failure --timeout 120
   fuzz:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - run: clang++ -std=c++20 -Iinclude -fsanitize=fuzzer,address,undefined tests/fuzz.cpp -o fuzz
-      - run: ./fuzz -runs=100000
-  benchmark:
-    # Set repository variable BENCHMARK_RUNNER=true after provisioning a stable runner.
+      - run: sudo apt-get update && sudo apt-get install -y clang-18 ninja-build
+      - run: CC=clang-18 CXX=clang++-18 cmake -S . -B build -G Ninja -DHFT_TESTS=OFF -DHFT_GOOGLE_BENCHMARK=OFF -DHFT_FUZZ=ON -DCMAKE_BUILD_TYPE=Debug
+      - run: cmake --build build --target hft_fuzz -j 2
+      - run: mkdir -p corpus && build/hft_fuzz corpus -runs=100000 -max_len=65536
+  benchmark-smoke:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DHFT_TESTS=OFF -DHFT_NATIVE=ON
+      - run: cmake --build build -j 2
+      - name: Measured smoke run on one available core
+        run: |
+          CORE=$(python3 -c 'import os; print(min(os.sched_getaffinity(0)))')
+          python3 tools/run_benchmarks.py build/hft_bench --out current --core "$CORE" --repetitions 20
+          build/hft_microbench --benchmark_repetitions=20 --benchmark_min_time=0.01s --benchmark_out=micro.json --benchmark_out_format=json
+      - run: python3 tools/check_regression.py current.json current.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-smoke
+          path: |
+            current.*
+            micro.json
+  benchmark-regression:
+    # Requires a dedicated Linux x86-64 runner and an approved baseline from that host.
     if: vars.BENCHMARK_RUNNER == 'true'
     runs-on: [self-hosted, linux, x64, hft-benchmark]
     steps:
       - uses: actions/checkout@v4
-      - run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DHFT_NATIVE=ON
-      - run: cmake --build build
-      - run: taskset -c 2 build/hft_bench > current.json
+      - run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DHFT_NATIVE=ON -DHFT_TESTS=OFF -DHFT_GOOGLE_BENCHMARK=OFF
+      - run: cmake --build build -j 2
+      - run: python3 tools/run_benchmarks.py build/hft_bench --out current --core 2 --repetitions 20
       - run: python3 tools/check_regression.py /opt/hft-baseline/latency.json current.json
       - uses: actions/upload-artifact@v4
         with:
-          name: latency
-          path: current.json
+          name: latency-regression
+          path: current*

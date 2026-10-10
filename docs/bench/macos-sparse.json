@@ -1,0 +1,95 @@
+{
+  "schema": 2,
+  "dataset": "two_sided_forced_quote_v1",
+  "platform": "Darwin",
+  "arch": "arm64",
+  "compiler": "Apple LLVM 21.0.0 (clang-2100.3.34.2)",
+  "build_type": "Release",
+  "native": true,
+  "pinned": false,
+  "timer": "steady_clock",
+  "ns_per_tick": 1,
+  "dense_index": false,
+  "hot_allocations": 0,
+  "encoded_orders": 50000,
+  "instrumented_messages_per_second": 3904225.0,
+  "messages_per_second": 8391595.0,
+  "stages": {
+    "parse": {
+      "samples": 100000.0,
+      "p50_ns": 0.0,
+      "p90_ns": 42.0,
+      "p99_ns": 42.0,
+      "p999_ns": 42.0,
+      "max_ns": 209.0,
+      "out_of_range": 0.0
+    },
+    "book": {
+      "samples": 100000.0,
+      "p50_ns": 83.0,
+      "p90_ns": 125.0,
+      "p99_ns": 125.0,
+      "p999_ns": 187.5,
+      "max_ns": 7895.5,
+      "out_of_range": 0.0
+    },
+    "signal": {
+      "samples": 100000.0,
+      "p50_ns": 0.0,
+      "p90_ns": 42.0,
+      "p99_ns": 42.0,
+      "p999_ns": 42.0,
+      "max_ns": 1979.5,
+      "out_of_range": 0.0
+    },
+    "risk": {
+      "samples": 50000.0,
+      "p50_ns": 0.0,
+      "p90_ns": 42.0,
+      "p99_ns": 42.0,
+      "p999_ns": 42.0,
+      "max_ns": 187.5,
+      "out_of_range": 0.0
+    },
+    "encode": {
+      "samples": 50000.0,
+      "p50_ns": 0.0,
+      "p90_ns": 42.0,
+      "p99_ns": 42.0,
+      "p999_ns": 42.0,
+      "max_ns": 167.0,
+      "out_of_range": 0.0
+    },
+    "tick_to_trade": {
+      "samples": 50000.0,
+      "p50_ns": 250.0,
+      "p90_ns": 250.0,
+      "p99_ns": 292.0,
+      "p999_ns": 375.0,
+      "max_ns": 13875.0,
+      "out_of_range": 0.0
+    },
+    "total_event": {
+      "samples": 100000.0,
+      "p50_ns": 291.0,
+      "p90_ns": 334.0,
+      "p99_ns": 334.0,
+      "p999_ns": 458.0,
+      "max_ns": 16166.5,
+      "out_of_range": 0.0
+    }
+  },
+  "book_add_micro": {
+    "samples": 100000,
+    "p50_ns": 41,
+    "p90_ns": 42,
+    "p99_ns": 84,
+    "p999_ns": 84,
+    "max_ns": 5791,
+    "out_of_range": 0
+  },
+  "source_sha256": "b55be8a92edaf30f819723331ff429e3bcf32c93cab3bfad0930fbc2a1d792a7",
+  "host": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "repetitions": 20,
+  "aggregation": "median of run percentiles; counts per run"
+}

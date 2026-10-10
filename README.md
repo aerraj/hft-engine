@@ -1,52 +1,55 @@
 # hft-engine
 
-![Measured latency histogram](docs/histogram-macos.svg)
+![Latency histogram](docs/bench/macos-dense.svg)
 
 ```mermaid
 flowchart LR
-  I[Length-prefixed ITCH A/X/E] --> P[Validated parser]
-  P --> B[Bounded single-symbol book]
-  B --> S[Maker or imbalance taker]
-  S --> R[Pre-trade risk]
-  R --> O[Order IDs and positions]
-  O --> G[Simulator wire encoder]
-  G --> X[Immediate aggressive-fill simulator]
-  X --> O
+  F[ITCH file or MoldUDP64] --> P[Validated ITCH parser]
+  P --> B[Instrument books: pools + FIFO + dense/sparse prices]
+  B --> S[Microprice maker / EMA imbalance taker]
+  S --> R[Position + pending exposure + collars + rate + self-trade]
+  R --> O[OMS state machines]
+  O --> G[OUCH 4.2 encoder]
+  G --> X[Latency / price-time / queue simulator]
+  X --> A[OUCH acknowledgments and fills]
+  A --> O
+  O --> L[SPSC binary logger]
+  C[Unix control: kill / limits / stats] --> R
 ```
 
-**Working prototype, not a completed exchange engine.** The sub-5 µs target remains unverified on Linux x86-64. No live connectivity or real-money support. Current benchmark exercises a one-sided book and emits no order; it cannot establish tick-to-trade performance.
+C++20 single-process simulation engine. Replay and UDP use the same parser, books, strategies, risk, OMS and simulator. Public GitHub repository; no real-money/exchange connectivity.
 
-| Measured stage | p50 ns | p99 ns | p99.9 ns |
-|---|---:|---:|---:|
-| Parse → book → decision → rejected empty intent | 750 | 1167 | 1209 |
-| Separate parser/book/signal/risk/encode stages | unmeasured | unmeasured | unmeasured |
-| Full tick-to-trade on Linux | unmeasured | unmeasured | unmeasured |
+The implementation includes all displayed-book ITCH mutations, all standard administrative layouts, instrument routing, pooled FIFO storage, dense/sparse prices, two reference strategies, pending-exposure risk, cancel/replace races, OUCH messages, SoupBinTCP session/loopback transport, latency and queue models, deterministic logs, binary snapshots/recovery, async logging, Linux affinity/huge-page advice/mlock options, HdrHistogram and allocation-audited benchmarks.
 
-Development measurement: Apple Clang 21, macOS ARM64, `-O3`, steady_clock, 10,000 warm-up events and 100,000 samples. Includes timer overhead; core unpinned. Raw [JSON](docs/latency-macos.json) and [histogram counts](docs/histogram-macos.csv) are committed. No throughput or zero-allocation claim has been established by measurement.
+**Validation boundaries:** the committed local measurements are macOS development diagnostics. Dedicated Linux x86-64 latency targets and exchange-certified end-of-day book equality remain unverified. CI publishes Linux benchmark artifacts. The million-message stress test is synthetic, not a full historical NASDAQ day. The simulator is an explicit counterfactual fill model, not evidence of profitability.
 
-## Reproduce
+## Build and run
 
 ```sh
 cmake --preset debug
-cmake --build build/debug
+cmake --build build/debug -j 4
 ctest --test-dir build/debug --output-on-failure
 python3 tools/generate_fixture.py
-build/debug/hft_replay maker tests/fixtures/synthetic.itch build/debug/maker.orders
-build/debug/hft_replay taker tests/fixtures/synthetic.itch build/debug/taker.orders
-cmake -S . -B build/bench -G Ninja -DCMAKE_BUILD_TYPE=Release -DHFT_NATIVE=ON
-cmake --build build/bench
-# Linux dedicated core; stderr contains histogram counts
- taskset -c 2 build/bench/hft_bench > latency.json 2> histogram.csv
+build/debug/hft_replay maker tests/fixtures/synthetic.itch build/debug/maker --metrics
+build/debug/hft_replay taker tests/fixtures/synthetic.itch build/debug/taker --metrics
+python3 tools/report.py build/debug/maker.orders --out build/debug/maker-report
 ```
 
-Repeat replay twice and `cmp` order files. CI performs this for both strategies. Builds require CMake ≥3.24, Ninja and a C++20 compiler. No third-party runtime dependencies. Exceptions/RTTI disabled; native tuning applies only to the benchmark target. Presets include debug, relwithdebinfo, release with LTO, ASan/UBSan and TSan.
+CMake ≥3.24, Ninja, C++20, POSIX and Python ≥3.9. GCC 14 and Clang 18 CI builds. Dependencies are pinned to immutable commits via CMake; optional vcpkg manifest supplies GoogleTest/Benchmark. Presets cover Debug, RelWithDebInfo, Release+LTO, ASan/UBSan and TSan. `-fno-exceptions -fno-rtti` applies to engine targets; `-march=native` is benchmark-only.
 
-## Scope and next steps
+## Benchmarks
 
-The parser supports exact ITCH 5.0 A, X and E payload layouts. Input is two-byte big-endian length-prefixed records. Unsupported messages stop replay with an error: a full NASDAQ day is **not supported**. Feed symbol/locate routing is not implemented; use single-symbol fixtures only. Book bounds are 8192 orders, 2048 price ticks starting at 99000. Overflow and invalid updates fail closed. Best prices scan the bounded levels; FIFO, sparse far levels, modify/replace/delete and snapshots remain pending.
+```sh
+cmake -S . -B build/bench -G Ninja -DCMAKE_BUILD_TYPE=Release -DHFT_NATIVE=ON
+cmake --build build/bench -j 4
+# Linux, available isolated core 2:
+python3 tools/run_benchmarks.py build/bench/hft_bench --core 2 --out latency --repetitions 20
+python3 tools/latency_report.py latency
+build/bench/hft_microbench --benchmark_repetitions=20
+```
 
-Maker alternates side by inventory and quotes the touch; micro-price/skew and quote cancellation remain pending. Taker uses 2:1 touch-depth imbalance. Simulator fills crossing orders immediately without consuming historical depth; passive quotes never fill. No queue-position or latency model. Risk covers size, position, absolute price and kill gating; outstanding exposure, self-trade checks, notional limits, throttles, cancel-all and control socket remain pending. OMS tracks IDs, cash and position; the declared state enum is not yet a state machine. Wire format is private, **not OUCH**; exchange encoding/session recovery remains pending. SPSC ring is tested, but async logger, calibrated TSC and HdrHistogram are not integrated.
+The benchmark forces outgoing quotes, measures p50/p90/p99/p99.9/max per stage and audits C++ heap allocations after warm-up. Throughput is measured separately without timestamp/histogram overhead. The report records timer/compiler/platform, native flags and source digest. Fixed-seed replay determinism excludes wall-clock performance records.
 
-CI covers GCC/Clang, sanitizers, malformed-input fuzzing and deterministic replay. Benchmark regression is configured for an opt-in dedicated self-hosted runner, using an externally provisioned baseline; it does not run on noisy shared runners. Property/golden full-day tests and allocation auditing remain pending.
+See [benchmark artifacts](docs/bench/), [design/complexities](docs/design.md), [decisions with paired measurements](docs/decisions.md), [backtest reports](docs/backtest.md), [implementation write-up](docs/building-sub-5us.md), [operations and data](docs/operations.md), and [reading list](docs/reading-list.md).
 
-See [design decisions](docs/decisions.md), [backtest report](docs/backtest.md), [write-up](docs/building-sub-5us.md), and [reading list](docs/reading-list.md).
+CI runs randomized book/reference tests, golden replay, byte-identical logs, ASan/UBSan, TSan, fuzzing and UDP/TCP loopback. Shared-runner benchmark checks are smoke tests. The 10% p99 regression gate requires a dedicated self-hosted runner and host-matched baseline (see operations).

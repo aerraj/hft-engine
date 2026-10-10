@@ -1,0 +1,19 @@
+{
+  "orders": 104,
+  "fills": 104,
+  "filled_qty": 1040,
+  "requested_qty": 1040,
+  "fill_rate": 1.0,
+  "final_inventory": -1000,
+  "max_abs_inventory": 1000,
+  "gross_pnl_ticks": -1820,
+  "fees_ticks": 0,
+  "net_pnl_ticks": -1820,
+  "realized_ticks": -300,
+  "pnl_increment_sharpe": 0.05379413752967972,
+  "sharpe_observations": 10,
+  "adverse_selection_cost_ticks": 2.980769230769231,
+  "adverse_selection_horizon_ns": 1000000,
+  "dataset": "synthetic unless caller supplies historical data",
+  "annualized_sharpe": null
+}
