@@ -44,6 +44,7 @@ with tempfile.TemporaryDirectory() as d:
                 if json.loads(command('stats'))['messages']==30:break
                 time.sleep(.01)
             else:raise AssertionError('live runner did not receive initial packet')
+            assert json.loads(command('hist'))['parse']['samples']==30
             assert command('limits 100 1000 100000000 1000 10000')=='queued'
             assert command('kill')=='queued'
             for _ in range(100):

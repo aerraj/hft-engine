@@ -1,11 +1,13 @@
 #pragma once
 #include "hft/core/clock.hpp"
 #include "hft/core/ring.hpp"
+#include "hft/log/histogram.hpp"
 #include "hft/risk/risk.hpp"
 #include <atomic>
 #include <charconv>
 #include <cstring>
 #include <poll.h>
+#include <sstream>
 #include <string>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -27,6 +29,8 @@ class Control {
     std::thread thread_;
     std::atomic<bool> stop_{false};
     Ring<Command, 128> queue_;
+    Metrics snapshot_;
+    std::atomic<bool> snapshot_requested_{false}, snapshot_ready_{false}, worker_ready_{false};
     void run() {
         while (!stop_.load(std::memory_order_acquire)) {
             pollfd p{fd_, POLLIN, 0};
@@ -41,7 +45,20 @@ class Control {
                 continue;
             std::string_view request(b.data(), static_cast<std::size_t>(count));
             std::string reply;
-            if (request == "stats")
+            if (request == "hist") {
+                snapshot_ready_.store(false, std::memory_order_relaxed);
+                snapshot_requested_.store(true, std::memory_order_release);
+                while (!snapshot_ready_.load(std::memory_order_acquire) &&
+                       !stop_.load(std::memory_order_acquire))
+                    std::this_thread::yield();
+                if (stop_.load())
+                    reply = "stopping";
+                else {
+                    std::ostringstream out;
+                    snapshot_.json(out);
+                    reply = out.str();
+                }
+            } else if (request == "stats")
                 reply = "{\"messages\":" + std::to_string(stats.messages.load()) +
                         ",\"orders\":" + std::to_string(stats.orders.load()) +
                         ",\"position\":" + std::to_string(stats.position.load()) +
@@ -104,10 +121,14 @@ class Control {
         thread_ = std::thread([this, hot_core] {
             if (hot_core >= 0 && !exclude_core(static_cast<unsigned>(hot_core))) {
                 stop_ = true;
+                worker_ready_.store(true, std::memory_order_release);
                 return;
             }
+            worker_ready_.store(true, std::memory_order_release);
             run();
         });
+        while (!worker_ready_.load(std::memory_order_acquire))
+            std::this_thread::yield();
     }
     ~Control() {
         stop_.store(true, std::memory_order_release);
@@ -119,7 +140,13 @@ class Control {
         }
     }
     bool good() const noexcept {
-        return fd_ >= 0;
+        return fd_ >= 0 && !stop_.load(std::memory_order_acquire);
+    }
+    void capture(const Metrics &source) noexcept {
+        if (snapshot_requested_.exchange(false, std::memory_order_acq_rel)) {
+            snapshot_.copy_from(source);
+            snapshot_ready_.store(true, std::memory_order_release);
+        }
     }
     bool pop(Command &c) noexcept {
         return queue_.pop(c);

@@ -26,6 +26,12 @@ class Histogram {
         hdr_reset(histogram_);
         max_ = dropped_ = 0;
     }
+    void copy_from(const Histogram &other) noexcept {
+        hdr_reset(histogram_);
+        hdr_add(histogram_, other.histogram_);
+        max_ = other.max_;
+        dropped_ = other.dropped_;
+    }
     void record(std::uint64_t n) noexcept {
         if (n > 3'600'000'000'000ULL || !hdr_record_value(histogram_, static_cast<std::int64_t>(n)))
             ++dropped_;
@@ -60,6 +66,10 @@ struct Metrics {
     void reset() noexcept {
         for (auto &h : hist)
             h.reset();
+    }
+    void copy_from(const Metrics &other) noexcept {
+        for (unsigned i = 0; i < Count; ++i)
+            hist[i].copy_from(other.hist[i]);
     }
     void json(std::ostream &o) const {
         o << '{';

@@ -71,6 +71,7 @@ int run(unsigned port, const char *output, const char *control_path, std::uint64
             } else if (command.type == hft::Command::LimitsChange)
                 e->risk.update(command.limits);
         }
+        control->capture(*metrics);
         control->stats.killed.store(e->risk.killed());
         auto n = recv(fd, b.data(), b.size(), 0);
         if (n < 0) {
