@@ -175,9 +175,9 @@ int main(int argc, char **argv) {
     }
     if (std::string_view(argv[1]) == "maker")
         return run<hft::Maker>(static_cast<unsigned>(port), argv[3], argv[4], count, group,
-                               recovery);
+                               recovery, config);
     if (std::string_view(argv[1]) == "taker")
         return run<hft::Taker>(static_cast<unsigned>(port), argv[3], argv[4], count, group,
-                               recovery);
+                               recovery, config);
     return 1;
 }
