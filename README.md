@@ -21,33 +21,19 @@ C++20 single-process simulation engine. Replay and UDP use the same parser, book
 
 The implementation includes all displayed-book ITCH mutations, all standard administrative layouts, instrument routing, pooled FIFO storage, dense/sparse prices, two reference strategies, pending-exposure risk, cancel/replace races, OUCH messages, SoupBinTCP session/loopback transport, latency and queue models, deterministic logs, binary snapshots/recovery, async logging, Linux affinity/huge-page advice/mlock options, HdrHistogram and allocation-audited benchmarks.
 
-Measured on **AMD EPYC 7763 64-Core Processor** using a **shared Linux x86-64 GitHub runner**, pinned to one available core with calibrated invariant TSC; GCC 13.3.0, Release `-O3`, benchmark-only `-march=native`. Twenty repetitions × 100000 market-data events; each repetition encodes 50000 new orders. Table entries are medians of per-run percentiles. The histogram shows run 1.
+Measured on **AMD EPYC 9V74 80-Core Processor** using a **shared Linux x86-64 GitHub runner**, pinned to one available core with calibrated invariant TSC; GCC 13.3.0, Release `-O3`, benchmark-only `-march=native`. Twenty repetitions × 100000 market-data events; each repetition encodes 50000 new orders. Table entries are medians of per-run percentiles. The histogram shows run 1.
 
 | Stage | p50 ns | p99 ns | p99.9 ns |
 |---|---:|---:|---:|
-| parse | 30 | 32 | 42 |
-| book | 206 | 222 | 339 |
-| signal | 37 | 40 | 47 |
-| risk | 35 | 38 | 50 |
-| encode | 40 | 42 | 52.5 |
-| tick to trade | 456 | 474.5 | 723 |
-| total event | 608 | 652 | 973 |
+| parse | 40 | 40 | 50 |
+| book | 50 | 60 | 90 |
+| signal | 40 | 50 | 50 |
+| risk | 40 | 40 | 50 |
+| encode | 50 | 60 | 70 |
+| tick to trade | 320 | 345 | 520 |
+| total event | 500 | 550 | 816 |
 
-Uninstrumented core throughput: **3.43 million messages/s**. Audited C++ allocations in the warmed processing loop: **0**. [Raw runs and metadata](docs/bench/linux/) · [public benchmark run](https://github.com/aerraj/hft-engine/actions/runs/38087419519). Book-stage timing includes validation and simulation bookkeeping; isolated book microbenchmarks are published separately.
-
-Measured on **AMD EPYC 7763 64-Core Processor** using a **shared Linux x86-64 GitHub runner**, pinned to one available core with calibrated invariant TSC; GCC 13.3.0, Release `-O3`, benchmark-only `-march=native`. Twenty repetitions × 100000 market-data events; each repetition encodes 50000 new orders. Table entries are medians of per-run percentiles. The histogram shows run 1.
-
-| Stage | p50 ns | p99 ns | p99.9 ns |
-|---|---:|---:|---:|
-| parse | 40 | 50 | 69 |
-| book | 230 | 260 | 490 |
-| signal | 40 | 50 | 60 |
-| risk | 40 | 50 | 60 |
-| encode | 60 | 70 | 110 |
-| tick to trade | 561 | 596 | 981 |
-| total event | 761 | 811 | 1342 |
-
-Uninstrumented core throughput: **3.00 million messages/s**. Audited C++ allocations in the warmed processing loop: **0**. [Raw runs and metadata](docs/bench/linux/) · [public benchmark run](https://github.com/aerraj/hft-engine/actions/runs/38088195005). Book-stage timing includes validation and simulation bookkeeping; isolated book microbenchmarks are published separately.
+Uninstrumented core throughput: **4.71 million messages/s**. Audited C++ allocations in the warmed processing loop: **0**. [Raw runs and metadata](docs/bench/linux/) · [public benchmark run](https://github.com/aerraj/hft-engine/actions/runs/38088662815). Book-stage timing includes validation and simulation bookkeeping; isolated book microbenchmarks are published separately.
 
 **Validation boundaries:** these are synthetic workload smoke measurements, not dedicated-host real-data acceptance or wire-to-wire latency. The million-message determinism/stress test is synthetic. Full historical-day equality against an exchange reference snapshot remains unverified. The simulator models counterfactual fills; its PnL is not evidence of profitability. [Exact assumptions and complexities](docs/design.md).
 
@@ -76,7 +62,7 @@ python3 tools/latency_report.py latency
 build/bench/hft_microbench --benchmark_repetitions=20
 ```
 
-The benchmark forces outgoing quotes, measures p50/p90/p99/p99.9/max per stage and audits C++ heap allocations after warm-up. Throughput is measured separately without timestamp/histogram overhead. The report records timer/compiler/platform, native flags and source digest. Fixed-seed replay determinism excludes wall-clock performance records. Use `--config config/default.conf` to load startup limits; later CLI flags override earlier settings. Use `--config config/default.conf` to load startup limits; later CLI flags override earlier settings.
+The benchmark forces outgoing quotes, measures p50/p90/p99/p99.9/max per stage and audits C++ heap allocations after warm-up. Throughput is measured separately without timestamp/histogram overhead. The report records timer/compiler/platform, native flags and source digest. Fixed-seed replay determinism excludes wall-clock performance records. Use `--config config/default.conf` to load startup limits; later CLI flags override earlier settings. Use `--config config/default.conf` to load startup limits; later CLI flags override earlier settings. Use `--config config/default.conf` to load startup limits; later CLI flags override earlier settings. Use `--config config/default.conf` to load startup limits; later CLI flags override earlier settings.
 
 See [benchmark artifacts](docs/bench/), [design/complexities](docs/design.md), [decisions with paired measurements](docs/decisions.md), [backtest reports](docs/backtest.md), [implementation write-up](docs/building-sub-5us.md), [operations and data](docs/operations.md), and [reading list](docs/reading-list.md).
 

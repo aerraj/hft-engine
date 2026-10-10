@@ -1,0 +1,197 @@
+{
+  "schema": 2,
+  "dataset": "two_sided_forced_quote_v2",
+  "platform": "Linux",
+  "arch": "x86_64",
+  "compiler": "13.3.0",
+  "build_type": "Release",
+  "native": true,
+  "pinned": true,
+  "timer": "invariant_tsc",
+  "ns_per_tick": 0.385203,
+  "full_scan": true,
+  "dense_index": true,
+  "hot_allocations": 0,
+  "encoded_orders": 50000,
+  "instrumented_messages_per_second": 1782845.0,
+  "messages_per_second": 3522770.0,
+  "stages": {
+    "parse": {
+      "samples": 100000.0,
+      "p50_ns": 40.0,
+      "p90_ns": 40.0,
+      "p99_ns": 40.0,
+      "p999_ns": 40.0,
+      "max_ns": 23476,
+      "out_of_range": 0.0
+    },
+    "book": {
+      "samples": 100000.0,
+      "p50_ns": 190.0,
+      "p90_ns": 200.0,
+      "p99_ns": 210.0,
+      "p999_ns": 350.0,
+      "max_ns": 47203,
+      "out_of_range": 0.0
+    },
+    "signal": {
+      "samples": 100000.0,
+      "p50_ns": 40.0,
+      "p90_ns": 40.0,
+      "p99_ns": 50.0,
+      "p999_ns": 50.0,
+      "max_ns": 29074,
+      "out_of_range": 0.0
+    },
+    "risk": {
+      "samples": 50000.0,
+      "p50_ns": 40.0,
+      "p90_ns": 40.0,
+      "p99_ns": 40.0,
+      "p999_ns": 50.0,
+      "max_ns": 13911,
+      "out_of_range": 0.0
+    },
+    "encode": {
+      "samples": 50000.0,
+      "p50_ns": 50.0,
+      "p90_ns": 50.0,
+      "p99_ns": 60.0,
+      "p999_ns": 60.0,
+      "max_ns": 11758,
+      "out_of_range": 0.0
+    },
+    "tick_to_trade": {
+      "samples": 50000.0,
+      "p50_ns": 470.0,
+      "p90_ns": 470.0,
+      "p99_ns": 480.0,
+      "p999_ns": 801.0,
+      "max_ns": 52730,
+      "out_of_range": 0.0
+    },
+    "total_event": {
+      "samples": 100000.0,
+      "p50_ns": 650.0,
+      "p90_ns": 671.0,
+      "p99_ns": 701.0,
+      "p999_ns": 1051.0,
+      "max_ns": 52981,
+      "out_of_range": 0.0
+    }
+  },
+  "book_add_micro": {
+    "samples": 100000,
+    "p50_ns": 40,
+    "p90_ns": 40,
+    "p99_ns": 40,
+    "p999_ns": 40,
+    "max_ns": 7481,
+    "out_of_range": 0
+  },
+  "source_sha256": "1016d621b099311a96b0c021e742aa06e298b93b53ab18a6615b897824ca2443",
+  "host": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "cpu_model": "AMD EPYC 9V74 80-Core Processor",
+  "repetitions": 20,
+  "aggregation": "median of run percentiles; maximum across runs for max and overflow; counts per run",
+  "stage_run_ranges": {
+    "parse": {
+      "p50_ns": {
+        "min": 40.0,
+        "max": 40.0
+      },
+      "p99_ns": {
+        "min": 40.0,
+        "max": 40.0
+      },
+      "p999_ns": {
+        "min": 40.0,
+        "max": 50
+      }
+    },
+    "book": {
+      "p50_ns": {
+        "min": 190.0,
+        "max": 190.0
+      },
+      "p99_ns": {
+        "min": 210.0,
+        "max": 210.0
+      },
+      "p999_ns": {
+        "min": 210,
+        "max": 380
+      }
+    },
+    "signal": {
+      "p50_ns": {
+        "min": 40.0,
+        "max": 40.0
+      },
+      "p99_ns": {
+        "min": 50.0,
+        "max": 50.0
+      },
+      "p999_ns": {
+        "min": 50.0,
+        "max": 50.0
+      }
+    },
+    "risk": {
+      "p50_ns": {
+        "min": 40.0,
+        "max": 40.0
+      },
+      "p99_ns": {
+        "min": 40.0,
+        "max": 40.0
+      },
+      "p999_ns": {
+        "min": 40,
+        "max": 60
+      }
+    },
+    "encode": {
+      "p50_ns": {
+        "min": 50.0,
+        "max": 60
+      },
+      "p99_ns": {
+        "min": 50,
+        "max": 70
+      },
+      "p999_ns": {
+        "min": 60.0,
+        "max": 80
+      }
+    },
+    "tick_to_trade": {
+      "p50_ns": {
+        "min": 470.0,
+        "max": 480
+      },
+      "p99_ns": {
+        "min": 480.0,
+        "max": 630
+      },
+      "p999_ns": {
+        "min": 721,
+        "max": 931
+      }
+    },
+    "total_event": {
+      "p50_ns": {
+        "min": 650.0,
+        "max": 671
+      },
+      "p99_ns": {
+        "min": 691,
+        "max": 721
+      },
+      "p999_ns": {
+        "min": 961,
+        "max": 1251
+      }
+    }
+  }
+}

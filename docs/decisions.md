@@ -1,15 +1,27 @@
 # Design decisions and measured optimizations
 
-Measurements below use identical forced-quote workloads, compiler flags and pinned shared Linux x86-64 runner. Each configuration ran twenty repetitions. These are workload-specific results, not a dedicated-host tuning conclusion. Raw [dense runs](bench/linux/current.json), [sparse runs](bench/linux/sparse.json), and [CI provenance](https://github.com/aerraj/hft-engine/actions/runs/38088195005) are retained.
+Measurements below use identical forced-quote workloads, compiler flags and pinned shared Linux x86-64 runner. Each configuration ran twenty repetitions. These are workload-specific results, not a dedicated-host tuning conclusion. Raw [dense runs](bench/linux/current.json), [sparse runs](bench/linux/sparse.json), and [CI provenance](https://github.com/aerraj/hft-engine/actions/runs/38088662815) are retained.
 
 | Change | Before: sparse-only | After: dense window + sparse fallback | Interpretation |
 |---|---:|---:|---|
-| Tick-to-trade p50 ns | 561 | 561 | Compare alongside tails; no general speedup claimed |
-| Tick-to-trade p99 ns | 591 | 596 | Small differences on a shared VM can be noise |
-| Book-processing p99 ns | 260 | 260 | Includes validation and simulator work |
+| Tick-to-trade p50 ns | 310 | 320 | Compare alongside tails; no general speedup claimed |
+| Tick-to-trade p99 ns | 330 | 345 | Small differences on a shared VM can be noise |
+| Book-processing p99 ns | 60 | 60 | Includes validation and simulator work |
 | Book add micro p50 ns (run 1) | 80 | 40 | Existing-price lookup in a 100-level book; per-run JSON available |
 
 Dense storage consumes 32 KiB for the selected instrument, not for every locate. A 4096-tick fixed window falls back to the sparse treap outside its initial range. This makes price bounds explicit without rejecting far prices. The small two-sided end-to-end workload does not establish that dense indexing materially improves whole-engine latency.
+
+## Scan only active simulated orders
+
+The original simulator inspected every one of its 256 slots on relevant book events. A compact active-slot list now visits only outstanding simulated orders, with swap removal on completion. A reference full-scan mode remains available for paired measurements and behavioral tests.
+
+| Same-host measurement | Full scan | Active list |
+|---|---:|---:|
+| Throughput, million messages/s | 3.523 | 4.709 |
+| Tick-to-trade p99 ns | 480 | 345 |
+| Book-processing p99 ns | 210 | 60 |
+
+[Full-scan raw runs](bench/linux/fullscan.json) and [active-list raw runs](bench/linux/current.json) use the same two-sided forced-quote v2 workload and compiler barrier around outgoing encoded bytes. Twenty runs per mode; the improvement is specific to this low-live-order workload. The shared-runner throughput remains below the 5 million messages/s acceptance target; dedicated-host validation is outstanding.
 
 ## Foundational decisions without fabricated before/after claims
 
