@@ -40,4 +40,6 @@ Passive orders join behind displayed shares at arrival. Historical cancels ahead
 
 One hot thread, one SPSC binary logger and one control thread in UDP mode. `--core` pins only the hot thread and excludes that core from background workers on Linux; do not pin the whole process with taskset when using logging/control. Binary records have explicit endian fields with no compiler padding. Overflow/disk failures are visible. Replay applies backpressure before entering the processing function; UDP fails closed if logging cannot keep up.
 
+The compile-time strategy concept accepts custom implementations without reference-strategy-specific fields. Passive intents are desired quotes: stale passive orders cancel, while IOC orders remain pending until their response.
+
 The logger writes feed/simulation timestamps, making order/fill/inventory logs byte-identical across replays. HdrHistogram records performance clock values separately. Invariant TSC is checked and calibrated at startup on x86-64; steady_clock is the fallback. Histogram allocation occurs at startup. No virtual dispatch, exceptions, RTTI, formatting or disk I/O occurs in `Engine::process`.

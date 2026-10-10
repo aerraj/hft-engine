@@ -12,3 +12,10 @@ User-provided reading list; bibliographic details and current availability have 
 - Herb Sutter and Fedor Pikus talks on atomics and lock-free structures: review SPSC memory ordering and concurrency validation.
 
 Suggested sequence: Harris alongside the protocol specifications, Ghosh for integration, Andrist/Sehr for measured optimization, then market-making models and the talks.
+
+## Protocol implementation references
+
+- [NASDAQ TotalView-ITCH 5.0](https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHSpecification_5.0.pdf)
+- [NASDAQ OUCH 4.2](https://www.nasdaqtrader.com/content/technicalsupport/specifications/TradingProducts/OUCH4.2.pdf)
+- [NASDAQ SoupBinTCP](https://www.nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/soupbintcp.pdf)
+- [Public NASDAQ ITCH file directory](https://emi.nasdaq.com/ITCH/Nasdaq%20ITCH/)

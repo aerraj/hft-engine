@@ -8,88 +8,189 @@
   "native": true,
   "pinned": true,
   "timer": "invariant_tsc",
-  "ns_per_tick": 0.35801,
+  "ns_per_tick": 0.408932,
   "dense_index": false,
   "hot_allocations": 0,
   "encoded_orders": 50000,
-  "instrumented_messages_per_second": 1958205.0,
-  "messages_per_second": 3442850.0,
+  "instrumented_messages_per_second": 1592820.0,
+  "messages_per_second": 3019155.0,
   "stages": {
     "parse": {
       "samples": 100000.0,
-      "p50_ns": 30.0,
-      "p90_ns": 31.0,
-      "p99_ns": 32.0,
-      "p999_ns": 40.0,
-      "max_ns": 4802.5,
+      "p50_ns": 40.0,
+      "p90_ns": 40.0,
+      "p99_ns": 50.0,
+      "p999_ns": 60.0,
+      "max_ns": 16230,
       "out_of_range": 0.0
     },
     "book": {
       "samples": 100000.0,
-      "p50_ns": 205.0,
-      "p90_ns": 216.0,
-      "p99_ns": 221.0,
-      "p999_ns": 321.0,
-      "max_ns": 9234.5,
+      "p50_ns": 230.0,
+      "p90_ns": 250.0,
+      "p99_ns": 260.0,
+      "p999_ns": 490.5,
+      "max_ns": 51580,
       "out_of_range": 0.0
     },
     "signal": {
       "samples": 100000.0,
-      "p50_ns": 37.0,
-      "p90_ns": 39.0,
-      "p99_ns": 40.0,
-      "p999_ns": 45.0,
-      "max_ns": 5486.5,
+      "p50_ns": 40.0,
+      "p90_ns": 50.0,
+      "p99_ns": 50.0,
+      "p999_ns": 60.0,
+      "max_ns": 19868,
       "out_of_range": 0.0
     },
     "risk": {
       "samples": 50000.0,
-      "p50_ns": 35.0,
-      "p90_ns": 37.0,
-      "p99_ns": 38.0,
-      "p999_ns": 45.0,
-      "max_ns": 4847.5,
+      "p50_ns": 40.0,
+      "p90_ns": 49.0,
+      "p99_ns": 50.0,
+      "p999_ns": 60.0,
+      "max_ns": 15059,
       "out_of_range": 0.0
     },
     "encode": {
       "samples": 50000.0,
-      "p50_ns": 40.0,
-      "p90_ns": 41.0,
-      "p99_ns": 42.0,
-      "p999_ns": 50.5,
-      "max_ns": 5276.5,
+      "p50_ns": 60.0,
+      "p90_ns": 69.0,
+      "p99_ns": 70.0,
+      "p999_ns": 110.0,
+      "max_ns": 23646,
       "out_of_range": 0.0
     },
     "tick_to_trade": {
       "samples": 50000.0,
-      "p50_ns": 455.0,
-      "p90_ns": 461.0,
-      "p99_ns": 473.0,
-      "p999_ns": 707.0,
-      "max_ns": 10032.0,
+      "p50_ns": 561.0,
+      "p90_ns": 570.0,
+      "p99_ns": 591.0,
+      "p999_ns": 996.5,
+      "max_ns": 52001,
       "out_of_range": 0.0
     },
     "total_event": {
       "samples": 100000.0,
-      "p50_ns": 607.0,
-      "p90_ns": 635.0,
-      "p99_ns": 650.0,
-      "p999_ns": 925.0,
-      "max_ns": 13668.5,
+      "p50_ns": 751.0,
+      "p90_ns": 781.0,
+      "p99_ns": 801.0,
+      "p999_ns": 1322.0,
+      "max_ns": 52302,
       "out_of_range": 0.0
     }
   },
   "book_add_micro": {
     "samples": 100000,
-    "p50_ns": 68,
-    "p90_ns": 68,
-    "p99_ns": 78,
-    "p999_ns": 81,
-    "max_ns": 8426,
+    "p50_ns": 80,
+    "p90_ns": 80,
+    "p99_ns": 80,
+    "p999_ns": 100,
+    "max_ns": 17002,
     "out_of_range": 0
   },
-  "source_sha256": "2825367b67239cdcfd575665099b96332937c93ae010cc90ebdb44439a4e09cf",
+  "source_sha256": "ed1fd22af78fe27d9970fba764964d9dcad51d8cfaf58dbd2f1c5f7654a2b4bb",
   "host": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+  "cpu_model": "AMD EPYC 7763 64-Core Processor",
   "repetitions": 20,
-  "aggregation": "median of run percentiles; counts per run"
+  "aggregation": "median of run percentiles; maximum across runs for max and overflow; counts per run",
+  "stage_run_ranges": {
+    "parse": {
+      "p50_ns": {
+        "min": 40.0,
+        "max": 40.0
+      },
+      "p99_ns": {
+        "min": 49,
+        "max": 50.0
+      },
+      "p999_ns": {
+        "min": 50,
+        "max": 80
+      }
+    },
+    "book": {
+      "p50_ns": {
+        "min": 200,
+        "max": 240
+      },
+      "p99_ns": {
+        "min": 250,
+        "max": 290
+      },
+      "p999_ns": {
+        "min": 310,
+        "max": 550
+      }
+    },
+    "signal": {
+      "p50_ns": {
+        "min": 40.0,
+        "max": 40.0
+      },
+      "p99_ns": {
+        "min": 50.0,
+        "max": 50.0
+      },
+      "p999_ns": {
+        "min": 50,
+        "max": 69
+      }
+    },
+    "risk": {
+      "p50_ns": {
+        "min": 40.0,
+        "max": 40.0
+      },
+      "p99_ns": {
+        "min": 50.0,
+        "max": 50.0
+      },
+      "p999_ns": {
+        "min": 50,
+        "max": 80
+      }
+    },
+    "encode": {
+      "p50_ns": {
+        "min": 60.0,
+        "max": 60.0
+      },
+      "p99_ns": {
+        "min": 70.0,
+        "max": 70.0
+      },
+      "p999_ns": {
+        "min": 89,
+        "max": 120
+      }
+    },
+    "tick_to_trade": {
+      "p50_ns": {
+        "min": 551,
+        "max": 570
+      },
+      "p99_ns": {
+        "min": 571,
+        "max": 871
+      },
+      "p999_ns": {
+        "min": 711,
+        "max": 1092
+      }
+    },
+    "total_event": {
+      "p50_ns": {
+        "min": 751.0,
+        "max": 771
+      },
+      "p99_ns": {
+        "min": 791,
+        "max": 851
+      },
+      "p999_ns": {
+        "min": 931,
+        "max": 1522
+      }
+    }
+  }
 }

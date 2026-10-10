@@ -1,0 +1,49 @@
+{
+  "strategy": "taker",
+  "folds": [
+    {
+      "training": "synthetic seed 7, 1000 cycles",
+      "held_out": "synthetic seed 11, 1000 cycles",
+      "selected": 3000,
+      "training_result": {
+        "orders": 0,
+        "fills": 0,
+        "filled_qty": 0,
+        "requested_qty": 0,
+        "fill_rate": 0,
+        "final_inventory": 0,
+        "max_abs_inventory": 0,
+        "gross_pnl_ticks": 0,
+        "fees_ticks": 0,
+        "net_pnl_ticks": 0,
+        "realized_ticks": 0,
+        "pnl_increment_sharpe": null,
+        "sharpe_observations": 10,
+        "adverse_selection_cost_ticks": null,
+        "adverse_selection_horizon_ns": 1000000,
+        "dataset": "synthetic unless caller supplies historical data",
+        "annualized_sharpe": null
+      },
+      "held_out_result": {
+        "orders": 0,
+        "fills": 0,
+        "filled_qty": 0,
+        "requested_qty": 0,
+        "fill_rate": 0,
+        "final_inventory": 0,
+        "max_abs_inventory": 0,
+        "gross_pnl_ticks": 0,
+        "fees_ticks": 0,
+        "net_pnl_ticks": 0,
+        "realized_ticks": 0,
+        "pnl_increment_sharpe": null,
+        "sharpe_observations": 10,
+        "adverse_selection_cost_ticks": null,
+        "adverse_selection_horizon_ns": 1000000,
+        "dataset": "synthetic unless caller supplies historical data",
+        "annualized_sharpe": null
+      }
+    }
+  ],
+  "selection": "training-only grid; no future session used"
+}

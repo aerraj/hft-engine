@@ -1,0 +1,53 @@
+{
+  "maker": {
+    "messages": 1000026,
+    "book_events": 1000000,
+    "book_orders": 0,
+    "peak_book_orders": 4,
+    "orders": 349990,
+    "fills": 100010,
+    "fill_qty": 1000100,
+    "cancelled": 249980,
+    "risk_rejections": 0,
+    "position": -100,
+    "cash_ticks": 11981310,
+    "realized_ticks": 1981026,
+    "unrealized_ticks": 1684,
+    "equity_ticks": 1982710,
+    "network_latency_ns": 1000,
+    "exchange_latency_ns": 1000,
+    "deterministic_clock": true,
+    "order_log_sha256": "64746e6dbd3c200946a1b9182f25cdc5573a68822e153d39f73f90c8efe83fbd",
+    "two_replays_byte_identical": true
+  },
+  "taker": {
+    "messages": 1000026,
+    "book_events": 1000000,
+    "book_orders": 0,
+    "peak_book_orders": 4,
+    "orders": 104,
+    "fills": 104,
+    "fill_qty": 1040,
+    "cancelled": 0,
+    "risk_rejections": 99898,
+    "position": -1000,
+    "cash_ticks": 100000180,
+    "realized_ticks": -300,
+    "unrealized_ticks": 14480,
+    "equity_ticks": 14180,
+    "network_latency_ns": 1000,
+    "exchange_latency_ns": 1000,
+    "deterministic_clock": true,
+    "order_log_sha256": "370c126a772e85295e614af089fb163770f248a1f1cbcb39224af406440266b1",
+    "two_replays_byte_identical": true
+  },
+  "input": {
+    "messages": 1000026,
+    "cycles": 100000,
+    "seed": 7,
+    "bytes": 32600743,
+    "sha256": "48cef59a0420753cd45ef72fc044ee242e4be95328da135f53272e748516f64e",
+    "synthetic": true
+  },
+  "code_path": "Engine<Maker>/Engine<Taker>, latency 1000ns network + 1000ns exchange"
+}

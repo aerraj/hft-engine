@@ -4,6 +4,8 @@
 
 `hft_replay maker|taker file.itch output_prefix` writes `.orders` (portable binary records), `.json` summary, `.book.csv`, and a recoverable `.snapshot`. `--metrics` adds `.latency.json/.csv`. `--snapshot-every N` writes intermediate book CSVs for golden verification. These optional snapshots run at the cold replay boundary and are excluded from the processing benchmark.
 
+Startup configuration: `--config config/default.conf` loads validated integer `key=value` settings before trading. Flags apply in order, so later flags override configuration values. Unknown/out-of-range configuration entries reject the entire load. No disk read occurs in processing.
+
 Options: `--locate`, `--orders` (pool capacity), `--levels`, `--network-ns`, `--exchange-ns`, `--quote-ns`, `--size`, `--half-spread`, `--skew`, `--threshold-bps`, `--core`, `--mlock`, `--huge-pages`. Risk limits are also available through the C++ `Config` and live control channel. Prices are exchange units: $1 = 10,000 ticks. The default pools support 262144 historical orders and 65536 levels, shared across instruments; large days require appropriately sized pools.
 
 ```sh
@@ -18,11 +20,12 @@ Public files are several GB compressed. The downloader verifies the exchange MD5
 ```sh
 build/debug/hft_live maker 18000 run/live.orders /tmp/hft-control.sock 0 --locate 1
 python3 tools/control.py /tmp/hft-control.sock stats
+python3 tools/control.py /tmp/hft-control.sock hist
 python3 tools/control.py /tmp/hft-control.sock limits 100 1000 100000000 1000 10000
 python3 tools/control.py /tmp/hft-control.sock kill
 ```
 
-Count zero runs until SIGINT/SIGTERM; positive count bounds the number of feed messages. `--group` joins multicast, `--recovery` points to a local snapshot, and `--core` reserves a hot core while background threads exclude it. Control replies `queued` before the main loop applies a change; stats are a recent atomic counter snapshot. Kill is latched; restarting deliberately is required to resume strategy submissions. Latency histograms dump on shutdown. Unix socket paths must be unused; no existing path is deleted on startup.
+Count zero runs until SIGINT/SIGTERM; positive count bounds the number of feed messages. `--group` joins multicast, `--recovery` points to a local snapshot, and `--core` reserves a hot core while background threads exclude it. Control replies `queued` before the main loop applies a change; stats are a recent atomic counter snapshot. Kill is latched; restarting deliberately is required to resume strategy submissions. Latency histograms dump on shutdown or through `hist`. On-demand snapshots copy preallocated counters at a loop boundary, then format the reply on the control thread; this deliberate diagnostic request can briefly perturb latency. Unix socket paths must be unused; no existing path is deleted on startup.
 
 `TcpGateway` is a loopback-only SoupBinTCP transport for simulator integration, including fragmented/coalesced frames, login, heartbeats, timeout detection and reconnect sequence preservation. The caller retains pending order tokens and can resend after login. It is not an exchange connection client.
 
