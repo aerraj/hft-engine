@@ -1,0 +1,41 @@
+name: CI
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        compiler: [g++, clang++]
+        sanitizer: ['', 'address,undefined', 'thread']
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} -DHFT_SANITIZER=${{ matrix.sanitizer }} -DCMAKE_BUILD_TYPE=Debug
+      - run: cmake --build build
+      - run: ctest --test-dir build --output-on-failure
+      - run: |
+          python3 tools/generate_fixture.py
+          for s in maker taker; do
+            build/hft_replay $s tests/fixtures/synthetic.itch build/$s.1.orders
+            build/hft_replay $s tests/fixtures/synthetic.itch build/$s.2.orders
+            cmp build/$s.1.orders build/$s.2.orders
+          done
+  fuzz:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: clang++ -std=c++20 -Iinclude -fsanitize=fuzzer,address,undefined tests/fuzz.cpp -o fuzz
+      - run: ./fuzz -runs=100000
+  benchmark:
+    # Set repository variable BENCHMARK_RUNNER=true after provisioning a stable runner.
+    if: vars.BENCHMARK_RUNNER == 'true'
+    runs-on: [self-hosted, linux, x64, hft-benchmark]
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DHFT_NATIVE=ON
+      - run: cmake --build build
+      - run: taskset -c 2 build/hft_bench > current.json
+      - run: python3 tools/check_regression.py /opt/hft-baseline/latency.json current.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: latency
+          path: current.json

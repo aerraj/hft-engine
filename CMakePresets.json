@@ -1,0 +1,48 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+      }
+    },
+    {
+      "name": "relwithdebinfo",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/relwithdebinfo",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "asan",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/asan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "HFT_SANITIZER": "address,undefined"
+      }
+    },
+    {
+      "name": "tsan",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/tsan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "HFT_SANITIZER": "thread"
+      }
+    }
+  ]
+}

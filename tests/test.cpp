@@ -1,0 +1,5 @@
+#include <cassert>
+#include <thread>
+#include "hft/core/engine.hpp"
+#include "hft/core/ring.hpp"
+int main(){hft::Book<16,32>b(100);assert(b.apply({hft::Kind::Add,1,hft::Side::Buy,110,10}));assert(!b.apply({hft::Kind::Add,1,hft::Side::Buy,110,10}));assert(!b.apply({hft::Kind::Cancel,1,{},0,11}));assert(b.apply({hft::Kind::Execute,1,{},0,4}));assert(b.depth(hft::Side::Buy,110)==6);assert(b.apply({hft::Kind::Cancel,1,{},0,6}));assert(b.best(hft::Side::Buy)==0);hft::Risk r;assert(r.check({1,hft::Side::Buy,110,1},0));r.killed=true;assert(!r.check({1,hft::Side::Buy,110,1},0));hft::Sequence s;assert(s.accept(1));assert(!s.accept(3));assert(!s.accept(2));s.recover(4);assert(s.accept(4));hft::Event e;std::array<unsigned char,36>a{};a[0]='A';a[19]='B';a[23]=10;a[35]=110;a[18]=1;assert(hft::parse(a,e));assert(e.id==1&&e.qty==10&&e.price==110);for(std::size_t n=0;n<a.size();++n)assert(!hft::parse({a.data(),n},e));hft::Ring<unsigned,64>q;std::thread producer([&]{for(unsigned i=0;i<100000;++i)while(!q.push(i)){};});for(unsigned i=0;i<100000;++i){unsigned v;while(!q.pop(v)){}assert(v==i);}producer.join();}
